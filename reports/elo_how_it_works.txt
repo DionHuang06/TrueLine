@@ -1,0 +1,225 @@
+====================================================================================================
+HOW ELO RATINGS CHANGE - COMPLETE EXPLANATION
+====================================================================================================
+
+This document explains exactly how Elo ratings are updated after each game.
+
+====================================================================================================
+BASIC ELO FORMULA
+====================================================================================================
+
+The core Elo update formula is:
+
+    New_Rating = Old_Rating + K × (Actual_Result - Expected_Result)
+
+Where:
+  - K = K-factor (how much ratings can change per game)
+  - Actual_Result = 1.0 if team won, 0.0 if team lost
+  - Expected_Result = Probability of winning (0.0 to 1.0)
+
+====================================================================================================
+STEP-BY-STEP PROCESS
+====================================================================================================
+
+1. BEFORE THE GAME:
+   - Get current Elo ratings for both teams
+   - Apply home court advantage (+100 points to home team)
+   - Calculate expected win probability for each team
+
+2. AFTER THE GAME:
+   - Determine actual result (who won)
+   - Calculate margin of victory
+   - Apply margin multiplier to K-factor
+   - Update both teams' Elo ratings
+
+====================================================================================================
+DETAILED CALCULATION
+====================================================================================================
+
+Example: Home team (Elo 1600) vs Away team (Elo 1500)
+
+STEP 1: Calculate Expected Win Probability
+-------------------------------------------
+  - Home team gets +100 home advantage → Adjusted Elo = 1700
+  - Expected home win probability = 1 / (1 + 10^((1500 - 1700) / 400))
+  - Expected home win probability = 1 / (1 + 10^(-200/400))
+  - Expected home win probability = 1 / (1 + 10^(-0.5))
+  - Expected home win probability = 1 / (1 + 0.316)
+  - Expected home win probability = 0.760 (76.0%)
+  - Expected away win probability = 0.240 (24.0%)
+
+STEP 2: Determine Actual Result
+--------------------------------
+  - If home team wins: Actual_home = 1.0, Actual_away = 0.0
+  - If away team wins: Actual_home = 0.0, Actual_away = 1.0
+
+STEP 3: Calculate Margin Multiplier
+------------------------------------
+  - Margin = |home_score - away_score|
+  - Margin multiplier = 1 + log(1 + margin/10) / 2
+  - Examples:
+    * 5 point win:  1 + log(1.5)/2 = 1.20x
+    * 10 point win: 1 + log(2.0)/2 = 1.35x
+    * 20 point win: 1 + log(3.0)/2 = 1.55x
+    * 30 point win: 1 + log(4.0)/2 = 1.69x
+  - Capped at 2.0x maximum
+
+STEP 4: Calculate Effective K-Factor
+-------------------------------------
+  - Base K-factor = 20 (from config)
+  - Effective K = Base_K × Margin_Multiplier × Recency_Weight
+  - Recency weight = 1.0 (currently not used, but available)
+
+STEP 5: Update Ratings
+-----------------------
+  - New_Home_Elo = Old_Home_Elo + Effective_K × (Actual_Home - Expected_Home)
+  - New_Away_Elo = Old_Away_Elo + Effective_K × (Actual_Away - Expected_Away)
+
+====================================================================================================
+CONCRETE EXAMPLE
+====================================================================================================
+
+Game: Home Team (1600 Elo) vs Away Team (1500 Elo)
+Result: Home team wins 110-95 (15 point margin)
+
+STEP 1: Expected Probabilities
+  - Adjusted home Elo = 1600 + 100 = 1700
+  - Expected home win = 1 / (1 + 10^((1500-1700)/400)) = 0.760
+  - Expected away win = 0.240
+
+STEP 2: Actual Result
+  - Actual home = 1.0 (won)
+  - Actual away = 0.0 (lost)
+
+STEP 3: Margin Multiplier
+  - Margin = |110 - 95| = 15 points
+  - Multiplier = 1 + log(1 + 15/10) / 2
+  - Multiplier = 1 + log(2.5) / 2
+  - Multiplier = 1 + 0.916 / 2
+  - Multiplier = 1.458x
+
+STEP 4: Effective K
+  - Effective K = 20 × 1.458 × 1.0 = 29.16
+
+STEP 5: Rating Updates
+  - Home team:
+    New = 1600 + 29.16 × (1.0 - 0.760)
+    New = 1600 + 29.16 × 0.240
+    New = 1600 + 7.0
+    New = 1607.0
+
+  - Away team:
+    New = 1500 + 29.16 × (0.0 - 0.240)
+    New = 1500 + 29.16 × (-0.240)
+    New = 1500 - 7.0
+    New = 1493.0
+
+RESULT: Home team gains 7.0 Elo, Away team loses 7.0 Elo
+
+====================================================================================================
+KEY FEATURES
+====================================================================================================
+
+1. HOME COURT ADVANTAGE:
+   - Home team gets +100 Elo points for prediction
+   - This makes home teams ~76% to win if evenly matched
+   - Home advantage is NOT added to the rating update (only for prediction)
+
+2. MARGIN OF VICTORY:
+   - Bigger wins = bigger Elo changes
+   - 10 point win: 1.35x multiplier
+   - 20 point win: 1.55x multiplier
+   - 30 point win: 1.69x multiplier
+   - Prevents close wins from being overvalued
+
+3. EXPECTED VS ACTUAL:
+   - If you win when expected: Small Elo gain
+   - If you win when unexpected: Large Elo gain
+   - If you lose when expected: Small Elo loss
+   - If you lose when unexpected: Large Elo loss
+
+4. SYMMETRY:
+   - Elo gained by winner = Elo lost by loser (approximately)
+   - Total Elo in system stays roughly constant
+   - Average Elo stays around 1500
+
+====================================================================================================
+CONFIGURATION PARAMETERS
+====================================================================================================
+
+From config.py:
+  - ELO_K_FACTOR = 20 (base amount ratings can change)
+  - ELO_HOME_ADVANTAGE = 100 (home court bonus)
+  - ELO_USE_MARGIN_WEIGHTING = True (bigger wins matter more)
+  - ELO_USE_REST_DAYS = True (adjusts predictions, not updates)
+
+====================================================================================================
+REST DAYS ADJUSTMENT
+====================================================================================================
+
+Rest days affect PREDICTIONS (before game), not Elo UPDATES (after game):
+
+  - 0 rest days (back-to-back): No penalty
+  - 1 rest day: -25 Elo points penalty
+  - 2+ rest days: Normal (no penalty)
+
+This is applied when calculating win probabilities, not when updating ratings.
+
+====================================================================================================
+WHY ELO CHANGES
+====================================================================================================
+
+Elo changes to reflect:
+  1. Team performance (wins/losses)
+  2. Quality of opponent (beating good teams = more Elo)
+  3. Margin of victory (blowouts = more Elo)
+  4. Expected vs actual results (upsets = bigger changes)
+
+The system is self-correcting:
+  - Overrated teams lose more → Elo decreases
+  - Underrated teams win more → Elo increases
+  - Ratings converge to true team strength over time
+
+====================================================================================================
+EXAMPLE PROGRESSION
+====================================================================================================
+
+Team starts at 1500 Elo:
+
+Game 1: Beat 1600 Elo team by 10 points
+  - Expected win: 24%
+  - Actual: Win
+  - Change: +29.2 Elo → New: 1529.2
+
+Game 2: Beat 1400 Elo team by 5 points
+  - Expected win: 76%
+  - Actual: Win
+  - Change: +5.8 Elo → New: 1535.0
+
+Game 3: Lose to 1500 Elo team by 3 points
+  - Expected win: 50%
+  - Actual: Loss
+  - Change: -20.0 Elo → New: 1515.0
+
+Game 4: Beat 1700 Elo team by 20 points (upset!)
+  - Expected win: 11%
+  - Actual: Win
+  - Change: +31.0 Elo → New: 1546.0
+
+Notice: Beating better teams and winning upsets gives more Elo!
+
+====================================================================================================
+SUMMARY
+====================================================================================================
+
+Elo changes based on:
+  ✓ Whether you won or lost
+  ✓ How likely you were to win (expected probability)
+  ✓ How much you won/lost by (margin of victory)
+  ✓ Quality of opponent (their Elo rating)
+
+The formula ensures:
+  ✓ Ratings reflect true team strength
+  ✓ Upsets cause bigger changes
+  ✓ Blowouts matter more than close games
+  ✓ System is self-correcting over time

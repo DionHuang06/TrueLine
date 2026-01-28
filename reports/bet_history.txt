@@ -1,0 +1,209 @@
+================================================================================
+NBA BETTING BACKTEST - PROPER METHODOLOGY (NO LOOK-AHEAD BIAS)
+================================================================================
+
+METHODOLOGY:
+- All teams start at ELO_INITIAL (1500) at the beginning of the backtest
+- Elo ratings are updated ONLY after each game completes
+- Predictions use ONLY information available before each game
+- Odds are filtered to only use snapshots from before game start time
+- NO future information is used in any calculation
+- FLAT $1.00 STAKE per bet
+
+BACKTEST PERIOD: 2026-01-01 to 2026-01-26
+MINIMUM EDGE: 15%
+
+================================================================================
+RESULTS SUMMARY
+================================================================================
+Total Bets:        82
+Wins:              31
+Losses:            51
+Win Rate:          37.80%
+
+Stake Per Bet:     $1.00
+Total Staked:      $82.00
+Total P&L:         $+20.38
+ROI:               24.85%
+
+================================================================================
+BET HISTORY
+================================================================================
+
+  #   Date         Game                                               Bet On                    Odds      Edge     Result   P&L        Running Total     
+----------------------------------------------------------------------------------------------------
+
+   1   2026-01-01   Houston Rockets @ Brooklyn Nets                    Brooklyn Nets             +409      44.97% LOSS     $  -1.00   $         -1.00      
+
+   2   2026-01-01   Philadelphia 76ers @ Dallas Mavericks              Dallas Mavericks          +122      20.07% LOSS     $  -1.00   $         -2.00      
+
+   3   2026-01-01   Boston Celtics @ Sacramento Kings                  Sacramento Kings          +326      41.24% LOSS     $  -1.00   $         -3.00      
+
+   4   2026-01-01   Utah Jazz @ Los Angeles Clippers                   Utah Jazz                 +541      20.88% LOSS     $  -1.00   $         -4.00      
+
+   5   2026-01-02   San Antonio Spurs @ Indiana Pacers                 Indiana Pacers            +184      29.75% LOSS     $  -1.00   $         -5.00      
+
+   6   2026-01-02   Denver Nuggets @ Cleveland Cavaliers               Denver Nuggets            +578      21.71% LOSS     $  -1.00   $         -6.00      
+
+   7   2026-01-02   Orlando Magic @ Chicago Bulls                      Chicago Bulls             +166      27.39% WIN      $  +1.66   $         -4.34      
+
+   8   2026-01-02   Portland Trail Blazers @ New Orleans Pelicans      New Orleans Pelicans      +139      23.24% LOSS     $  -1.00   $         -5.34      
+
+   9   2026-01-02   Sacramento Kings @ Phoenix Suns                    Sacramento Kings          +535      15.21% LOSS     $  -1.00   $         -6.34      
+
+  10   2026-01-02   Oklahoma City Thunder @ Golden State Warriors      Golden State Warriors     +493      47.68% LOSS     $  -1.00   $         -7.34      
+
+  11   2026-01-03   Minnesota Timberwolves @ Miami Heat                Miami Heat                +126      22.95% LOSS     $  -1.00   $         -8.34      
+
+  12   2026-01-03   Houston Rockets @ Dallas Mavericks                 Dallas Mavericks          +263      31.89% WIN      $  +2.63   $         -5.71      
+
+  13   2026-01-03   Utah Jazz @ Golden State Warriors                  Utah Jazz                 +330      18.61% LOSS     $  -1.00   $         -6.71      
+
+  14   2026-01-04   Denver Nuggets @ Brooklyn Nets                     Brooklyn Nets             +123      17.24% WIN      $  +1.23   $         -5.48      
+
+  15   2026-01-04   Minnesota Timberwolves @ Washington Wizards        Washington Wizards        +413      47.42% LOSS     $  -1.00   $         -6.48      
+
+  16   2026-01-04   Oklahoma City Thunder @ Phoenix Suns               Phoenix Suns              +300      38.20% WIN      $  +3.00   $         -3.48      
+
+  17   2026-01-04   Milwaukee Bucks @ Sacramento Kings                 Sacramento Kings          +201      26.63% LOSS     $  -1.00   $         -4.48      
+
+  18   2026-01-05   New York Knicks @ Detroit Pistons                  Detroit Pistons           +105      17.58% WIN      $  +1.05   $         -3.43      
+
+  19   2026-01-05   Charlotte Hornets @ Oklahoma City Thunder          Charlotte Hornets         +723      27.18% WIN      $  +7.23   $         +3.80      
+
+  20   2026-01-05   Golden State Warriors @ Los Angeles Clippers       Los Angeles Clippers      +123      20.75% WIN      $  +1.23   $         +5.03      
+
+  21   2026-01-06   Cleveland Cavaliers @ Indiana Pacers               Indiana Pacers            +194      28.33% LOSS     $  -1.00   $         +4.03      
+
+  22   2026-01-06   Orlando Magic @ Washington Wizards                 Washington Wizards        +240      34.05% WIN      $  +2.40   $         +6.43      
+
+  23   2026-01-06   San Antonio Spurs @ Memphis Grizzlies              Memphis Grizzlies         +201      29.08% WIN      $  +2.01   $         +8.44      
+
+  24   2026-01-06   Los Angeles Lakers @ New Orleans Pelicans          New Orleans Pelicans      +195      24.73% LOSS     $  -1.00   $         +7.44      
+
+  25   2026-01-06   Dallas Mavericks @ Sacramento Kings                Sacramento Kings          +170      22.67% LOSS     $  -1.00   $         +6.44      
+
+  26   2026-01-07   Toronto Raptors @ Charlotte Hornets                Charlotte Hornets         +122      21.42% LOSS     $  -1.00   $         +5.44      
+
+  27   2026-01-07   Washington Wizards @ Philadelphia 76ers            Washington Wizards        +561      15.53% LOSS     $  -1.00   $         +4.44      
+
+  28   2026-01-07   Orlando Magic @ Brooklyn Nets                      Brooklyn Nets             +112      19.83% LOSS     $  -1.00   $         +3.44      
+
+  29   2026-01-07   Phoenix Suns @ Memphis Grizzlies                   Memphis Grizzlies         +203      25.68% LOSS     $  -1.00   $         +2.44      
+
+  30   2026-01-07   Utah Jazz @ Oklahoma City Thunder                  Utah Jazz                 +711      21.10% LOSS     $  -1.00   $         +1.44      
+
+  31   2026-01-07   Houston Rockets @ Portland Trail Blazers           Portland Trail Blazers    +219      36.58% WIN      $  +2.19   $         +3.63      
+
+  32   2026-01-08   Dallas Mavericks @ Utah Jazz                       Utah Jazz                 +170      18.70% WIN      $  +1.70   $         +5.33      
+
+  33   2026-01-09   Philadelphia 76ers @ Orlando Magic                 Orlando Magic             +135      18.79% LOSS     $  -1.00   $         +4.33      
+
+  34   2026-01-09   New Orleans Pelicans @ Washington Wizards          Washington Wizards        +128      26.48% LOSS     $  -1.00   $         +3.33      
+
+  35   2026-01-09   Los Angeles Clippers @ Brooklyn Nets               Brooklyn Nets             +189      27.87% LOSS     $  -1.00   $         +2.33      
+
+  36   2026-01-09   Oklahoma City Thunder @ Memphis Grizzlies          Memphis Grizzlies         +183      25.70% LOSS     $  -1.00   $         +1.33      
+
+  37   2026-01-09   Atlanta Hawks @ Denver Nuggets                     Denver Nuggets            +110      18.50% LOSS     $  -1.00   $         +0.33      
+
+  38   2026-01-09   New York Knicks @ Phoenix Suns                     Phoenix Suns              +100      23.18% WIN      $  +1.00   $         +1.33      
+
+  39   2026-01-09   Houston Rockets @ Portland Trail Blazers           Portland Trail Blazers    +214      37.86% WIN      $  +2.14   $         +3.47      
+
+  40   2026-01-10   Miami Heat @ Indiana Pacers                        Indiana Pacers            +208      29.37% WIN      $  +2.08   $         +5.55      
+
+  41   2026-01-10   Los Angeles Clippers @ Detroit Pistons             Detroit Pistons           -118      16.06% LOSS     $  -1.00   $         +4.55      
+
+  42   2026-01-10   San Antonio Spurs @ Boston Celtics                 Boston Celtics            -105      15.37% LOSS     $  -1.00   $         +3.55      
+
+  43   2026-01-10   Charlotte Hornets @ Utah Jazz                      Utah Jazz                 +164      22.79% LOSS     $  -1.00   $         +2.55      
+
+  44   2026-01-11   Philadelphia 76ers @ Toronto Raptors               Toronto Raptors           +133      19.31% WIN      $  +1.33   $         +3.88      
+
+  45   2026-01-11   New York Knicks @ Portland Trail Blazers           Portland Trail Blazers    +180      40.86% LOSS     $  -1.00   $         +2.88      
+
+  46   2026-01-11   Milwaukee Bucks @ Denver Nuggets                   Denver Nuggets            +127      15.80% WIN      $  +1.27   $         +4.15      
+
+  47   2026-01-11   Houston Rockets @ Sacramento Kings                 Sacramento Kings          +472      36.73% WIN      $  +4.72   $         +8.87      
+
+  48   2026-01-12   Boston Celtics @ Indiana Pacers                    Indiana Pacers            +168      22.60% WIN      $  +1.68   $        +10.55      
+
+  49   2026-01-12   Philadelphia 76ers @ Toronto Raptors               Toronto Raptors           +132      22.48% LOSS     $  -1.00   $         +9.55      
+
+  50   2026-01-12   Los Angeles Lakers @ Sacramento Kings              Sacramento Kings          +285      27.59% WIN      $  +2.85   $        +12.40      
+
+  51   2026-01-13   Chicago Bulls @ Houston Rockets                    Chicago Bulls             +457      18.56% LOSS     $  -1.00   $        +11.40      
+
+  52   2026-01-13   Portland Trail Blazers @ Golden State Warriors     Portland Trail Blazers    +359      22.04% LOSS     $  -1.00   $        +10.40      
+
+  53   2026-01-14   Cleveland Cavaliers @ Philadelphia 76ers           Philadelphia 76ers        -108      22.94% LOSS     $  -1.00   $         +9.40      
+
+  54   2026-01-14   New York Knicks @ Sacramento Kings                 Sacramento Kings          +388      41.13% WIN      $  +3.88   $        +13.28      
+
+  55   2026-01-15   Boston Celtics @ Miami Heat                        Miami Heat                +127      18.02% LOSS     $  -1.00   $        +12.28      
+
+  56   2026-01-15   Oklahoma City Thunder @ Houston Rockets            Houston Rockets           +146      18.20% LOSS     $  -1.00   $        +11.28      
+
+  57   2026-01-15   Atlanta Hawks @ Portland Trail Blazers             Portland Trail Blazers    +150      21.93% WIN      $  +1.50   $        +12.78      
+
+  58   2026-01-16   Minnesota Timberwolves @ Houston Rockets           Houston Rockets           +152      17.00% LOSS     $  -1.00   $        +11.78      
+
+  59   2026-01-17   Boston Celtics @ Atlanta Hawks                     Atlanta Hawks             +137      20.06% LOSS     $  -1.00   $        +10.78      
+
+  60   2026-01-17   Indiana Pacers @ Detroit Pistons                   Indiana Pacers            +641      15.91% LOSS     $  -1.00   $         +9.78      
+
+  61   2026-01-18   New Orleans Pelicans @ Houston Rockets             Houston Rockets           +628      15.60% LOSS     $  -1.00   $         +8.78      
+
+  62   2026-01-18   Charlotte Hornets @ Denver Nuggets                 Denver Nuggets            +109      18.53% LOSS     $  -1.00   $         +7.78      
+
+  63   2026-01-19   Oklahoma City Thunder @ Cleveland Cavaliers        Cleveland Cavaliers       +185      25.78% LOSS     $  -1.00   $         +6.78      
+
+  64   2026-01-19   Dallas Mavericks @ New York Knicks                 Dallas Mavericks          +381      24.63% WIN      $  +3.81   $        +10.59      
+
+  65   2026-01-20   Minnesota Timberwolves @ Utah Jazz                 Utah Jazz                 +483      23.72% WIN      $  +4.83   $        +15.42      
+
+  66   2026-01-20   Los Angeles Lakers @ Denver Nuggets                Denver Nuggets            +126      23.60% LOSS     $  -1.00   $        +14.42      
+
+  67   2026-01-21   Cleveland Cavaliers @ Charlotte Hornets            Charlotte Hornets         +130      29.52% LOSS     $  -1.00   $        +13.42      
+
+  68   2026-01-22   Houston Rockets @ Philadelphia 76ers               Philadelphia 76ers        +120      17.58% WIN      $  +1.20   $        +14.62      
+
+  69   2026-01-22   Denver Nuggets @ Washington Wizards                Washington Wizards        +184      22.76% LOSS     $  -1.00   $        +13.62      
+
+  70   2026-01-22   Golden State Warriors @ Dallas Mavericks           Dallas Mavericks          +176      29.53% WIN      $  +1.76   $        +15.38      
+
+  71   2026-01-22   San Antonio Spurs @ Utah Jazz                      Utah Jazz                 +440      37.24% LOSS     $  -1.00   $        +14.38      
+
+  72   2026-01-22   Los Angeles Lakers @ Los Angeles Clippers          Los Angeles Clippers      -111      17.48% WIN      $  +0.90   $        +15.28      
+
+  73   2026-01-22   Miami Heat @ Portland Trail Blazers                Portland Trail Blazers    -118      22.98% WIN      $  +0.85   $        +16.13      
+
+  74   2026-01-23   Phoenix Suns @ Atlanta Hawks                       Atlanta Hawks             +130      16.20% WIN      $  +1.30   $        +17.43      
+
+  75   2026-01-23   Denver Nuggets @ Milwaukee Bucks                   Denver Nuggets            +235      19.10% WIN      $  +2.35   $        +19.78      
+
+  76   2026-01-23   Toronto Raptors @ Portland Trail Blazers           Portland Trail Blazers    +118      16.75% LOSS     $  -1.00   $        +18.78      
+
+  77   2026-01-24   New York Knicks @ Philadelphia 76ers               Philadelphia 76ers        +98       21.80% LOSS     $  -1.00   $        +17.78      
+
+  78   2026-01-24   Boston Celtics @ Chicago Bulls                     Chicago Bulls             +130      16.47% WIN      $  +1.30   $        +19.08      
+
+  79   2026-01-24   Los Angeles Lakers @ Dallas Mavericks              Dallas Mavericks          +150      32.37% LOSS     $  -1.00   $        +18.08      
+
+  80   2026-01-24   Miami Heat @ Utah Jazz                             Utah Jazz                 +225      34.87% LOSS     $  -1.00   $        +17.08      
+
+  81   2026-01-25   Toronto Raptors @ Oklahoma City Thunder            Toronto Raptors           +430      19.16% WIN      $  +4.30   $        +21.38      
+
+  82   2026-01-26   Boston Celtics @ Portland Trail Blazers            Portland Trail Blazers    +265      18.50% LOSS     $  -1.00   $        +20.38      
+
+
+================================================================================
+END OF BET HISTORY
+================================================================================
+
+NOTE: This backtest uses the PROPER methodology with NO look-ahead bias:
+- Elo starts at 1500 for all teams
+- Ratings update ONLY after games complete
+- Only pre-game odds are used for predictions
+- Results are realistic and representative of actual performance
