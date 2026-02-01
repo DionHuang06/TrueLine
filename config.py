@@ -12,7 +12,7 @@ DB_PATH = BASE_DIR / "nba_betting.db"
 # API Keys
 ODDS_API_KEY = os.getenv("ODDS_API_KEY", "")
 BALLDONTLIE_API_KEY = os.getenv("BALLDONTLIE_API_KEY", "")
-ISPORTSAPI_KEY = os.getenv("ISPORTSAPI_KEY", "tXodr7993rxeEfbU")
+ISPORTSAPI_KEY = os.getenv("ISPORTSAPI_KEY", "")
 
 # API Endpoints
 ODDS_API_BASE = "https://api.the-odds-api.com/v4"

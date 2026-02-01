@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # API Configuration
-API_KEY = os.getenv("ISPORTSAPI_KEY", "tXodr7993rxeEfbU")
+API_KEY = os.getenv("ISPORTSAPI_KEY", "")
 BASE_URL = "http://api.isportsapi.com/sport/basketball/odds/history"
 RATE_LIMIT_SECONDS = 60  # Minimum 60 seconds between calls
 RECOMMENDED_DELAY = 900  # 15 minutes recommended
