@@ -467,7 +467,61 @@ with tab2:
         c2.metric("Total Profit", f"${profit:.2f}")
         c3.metric("ROI", f"{roi:.1%}")
     
-    st.dataframe(df_bets)
+    # Editable Dataframe
+    edited_df = st.data_editor(
+        df_bets,
+        column_config={
+            "id": st.column_config.NumberColumn(disabled=True),
+            "placed_at": st.column_config.TextColumn(disabled=True),
+            "start_time": st.column_config.TextColumn(disabled=True),
+            "Home": st.column_config.TextColumn(disabled=True),
+            "Away": st.column_config.TextColumn(disabled=True),
+            "side": st.column_config.SelectboxColumn("Side", options=["HOME", "AWAY"]),
+            "odds": st.column_config.NumberColumn("Odds", min_value=1.01, max_value=100.0, step=0.01),
+            "edge": st.column_config.NumberColumn(disabled=True),
+            "stake": st.column_config.NumberColumn("Stake", min_value=0.0, step=1.0),
+            "result": st.column_config.SelectboxColumn("Result", options=["PENDING", "WIN", "LOSS", "PUSH"]),
+            "pnl": st.column_config.NumberColumn("PnL")
+        },
+        hide_index=True,
+        key="bets_editor"
+    )
+
+    if st.button("Save Changes"):
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        # We need to detect changes. 
+        # Ideally, we compare edited_df with df_bets, or valid updates.
+        # Logic: Iterate through edited_df and update each row by ID.
+        # Optimization: Only update if changed? 
+        # For simplicity in this interaction, we just update all rows present in edited_df.
+        
+        try:
+            total_updated = 0
+            for index, row in edited_df.iterrows():
+                # We update editable fields: side, odds, stake, result, pnl
+                # Note: edge is not editable here as it comes from snapshot
+                bet_id = row['id']
+                
+                # Check original value to skip if no change? 
+                # Doing naive update is safer for consistency unless list is huge.
+                
+                cursor.execute("""
+                    UPDATE paper_bets
+                    SET side = ?, odds = ?, stake = ?, result = ?, pnl = ?
+                    WHERE id = ?
+                """, (row['side'], row['odds'], row['stake'], row['result'], row['pnl'], bet_id))
+                total_updated += 1
+                
+            conn.commit()
+            st.success(f"✅ Successfully updated {total_updated} bets!")
+            st.rerun()
+            
+        except Exception as e:
+            st.error(f"Error saving changes: {e}")
+        finally:
+            conn.close()
 
 # --- TAB 3: ADD GAME ---
 with tab3:
