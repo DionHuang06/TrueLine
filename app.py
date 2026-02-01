@@ -566,12 +566,19 @@ with tab4:
     # helper to fetch
     def load_data():
         conn = get_connection()
+        # Join with new 'odds' table for Open/Close
         q = """
             SELECT g.id, g.start_time, h.name as home, a.name as away, 
-                   g.home_score, g.away_score, g.status
+                   g.home_score, g.away_score, g.status,
+                   AVG(CASE WHEN o.snapshot_type = '10h' THEN o.home_odds END) as home_open,
+                   AVG(CASE WHEN o.snapshot_type = '10h' THEN o.away_odds END) as away_open,
+                   AVG(CASE WHEN o.snapshot_type = 'closing' THEN o.home_odds END) as home_close,
+                   AVG(CASE WHEN o.snapshot_type = 'closing' THEN o.away_odds END) as away_close
             FROM games g
             JOIN teams h ON g.home_team_id = h.id
             JOIN teams a ON g.away_team_id = a.id
+            LEFT JOIN odds o ON g.id = o.game_id
+            GROUP BY g.id
             ORDER BY g.start_time DESC
             LIMIT 1000
         """
@@ -591,9 +598,13 @@ with tab4:
             "away": st.column_config.TextColumn(disabled=True),
             "home_score": st.column_config.NumberColumn("Home Score", min_value=0, step=1),
             "away_score": st.column_config.NumberColumn("Away Score", min_value=0, step=1),
-            "status": st.column_config.SelectboxColumn("Status", options=["SCHEDULED", "FINAL", "LIVE", "POSTPONED"])
+            "status": st.column_config.SelectboxColumn("Status", options=["SCHEDULED", "FINAL", "LIVE", "POSTPONED"]),
+            "home_open": st.column_config.NumberColumn("Home Open", format="%.2f", disabled=True),
+            "away_open": st.column_config.NumberColumn("Away Open", format="%.2f", disabled=True),
+            "home_close": st.column_config.NumberColumn("Home Close", format="%.2f", disabled=True),
+            "away_close": st.column_config.NumberColumn("Away Close", format="%.2f", disabled=True),
         },
-        disabled=["id", "start_time", "home", "away"],
+        disabled=["id", "start_time", "home", "away", "home_open", "away_open", "home_close", "away_close"],
         hide_index=True,
         use_container_width=True
     )
