@@ -476,6 +476,131 @@ def status_command():
     click.echo("=" * 40)
 
 
+@cli.group('isports')
+def isports_group():
+    """iSportsAPI historical odds commands."""
+    pass
+
+
+@isports_group.command('init')
+def isports_init():
+    """Initialize iSportsAPI database."""
+    from database.isportsapi_schema import init_db as init_isports_db
+    init_isports_db()
+    click.echo("iSportsAPI database initialized.")
+
+
+@isports_group.command('fetch')
+@click.option('--from', 'from_date', required=True, help='Start date (YYYY-MM-DD)')
+@click.option('--to', 'to_date', required=True, help='End date (YYYY-MM-DD)')
+@click.option('--fast', is_flag=True, help='Use 60s delay instead of 15min (not recommended)')
+def isports_fetch(from_date, to_date, fast):
+    """Fetch historical odds for date range."""
+    from ingestion.isportsapi_ingestion import iSportsAPIIngester
+    
+    click.echo(f"\nFetching iSportsAPI data from {from_date} to {to_date}...")
+    if not fast:
+        click.echo("Using recommended 15-minute delay between calls.")
+        click.echo("Use --fast flag to use 60-second delay (may hit rate limits).\n")
+    
+    ingester = iSportsAPIIngester(use_recommended_delay=not fast)
+    result = ingester.ingest_date_range(from_date, to_date)
+    
+    click.echo("\n" + "=" * 60)
+    click.echo("FETCH COMPLETE")
+    click.echo("=" * 60)
+    click.echo(f"Dates processed: {result['successful_dates']}/{result['total_days']}")
+    click.echo(f"Moneyline odds stored: {result['total_moneyline']}")
+    click.echo("=" * 60)
+
+
+@isports_group.command('status')
+def isports_status():
+    """Show iSportsAPI database statistics."""
+    from ingestion.isportsapi_ingestion import iSportsAPIIngester
+    
+    ingester = iSportsAPIIngester()
+    stats = ingester.get_database_stats()
+    
+    click.echo("\niSportsAPI DATABASE STATUS")
+    click.echo("=" * 40)
+    click.echo(f"Games:           {stats['games']}")
+    click.echo(f"Moneyline Odds:  {stats['moneyline_odds']}")
+    click.echo(f"Bookmakers:      {stats['bookmakers']}")
+    
+    if stats['date_range'][0]:
+        click.echo(f"Date Range:      {stats['date_range'][0]} to {stats['date_range'][1]}")
+    else:
+        click.echo("Date Range:      No data")
+    
+    click.echo("=" * 40)
+
+
+@isports_group.command('export')
+@click.option('--output', default='isports_odds.csv', help='Output CSV filename')
+@click.option('--match-id', default=None, help='Filter by specific match ID')
+def isports_export(output, match_id):
+    """Export odds data to CSV."""
+    import csv
+    from database.isportsapi_schema import get_connection
+    
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        
+        query = """
+            SELECT 
+                g.match_id,
+                g.game_date,
+                b.name as bookmaker,
+                m.opening_home,
+                m.opening_away,
+                m.closing_home,
+                m.closing_away,
+                m.eight_hour_home,
+                m.eight_hour_away
+            FROM moneyline_odds m
+            JOIN games g ON m.match_id = g.match_id
+            JOIN bookmakers b ON m.bookmaker_id = b.id
+        """
+        
+        if match_id:
+            query += " WHERE g.match_id = ?"
+            cursor.execute(query + " ORDER BY g.game_date, b.name", (match_id,))
+        else:
+            cursor.execute(query + " ORDER BY g.game_date, b.name")
+        
+        rows = cursor.fetchall()
+    
+    if not rows:
+        click.echo("No data to export.")
+        return
+    
+    with open(output, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            'Match ID', 'Date', 'Bookmaker',
+            'Opening Home', 'Opening Away',
+            'Closing Home', 'Closing Away',
+            '8hr Home', '8hr Away'
+        ])
+        
+        for row in rows:
+            writer.writerow([
+                row['match_id'],
+                row['game_date'],
+                row['bookmaker'],
+                f"{row['opening_home']:.3f}" if row['opening_home'] else '',
+                f"{row['opening_away']:.3f}" if row['opening_away'] else '',
+                f"{row['closing_home']:.3f}" if row['closing_home'] else '',
+                f"{row['closing_away']:.3f}" if row['closing_away'] else '',
+                f"{row['eight_hour_home']:.3f}" if row['eight_hour_home'] else '',
+                f"{row['eight_hour_away']:.3f}" if row['eight_hour_away'] else ''
+            ])
+    
+    click.echo(f"Exported {len(rows)} records to {output}")
+
+
 if __name__ == '__main__':
+
     cli()
 

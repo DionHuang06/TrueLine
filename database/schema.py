@@ -3,29 +3,10 @@ import sqlite3
 from contextlib import contextmanager
 from config import DB_PATH, STARTING_ELO_2025_26, ELO_INITIAL
 
-# Re-export get_connection from db module for compatibility
-from database.db import get_connection
 
-
-@contextmanager
-def get_db():
-    """Context manager for database connections."""
-    conn = get_connection()
-    try:
-        yield conn
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
-
-
-def init_db():
-    """Initialize the database with all required tables."""
-    conn = get_connection()
-    cursor = conn.cursor()
-
+def init_schema(cursor):
+    """Initialize the database schema using provided cursor."""
+    
     # Teams table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS teams (
@@ -35,6 +16,7 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+
 
     # Games table
     cursor.execute("""
@@ -61,8 +43,8 @@ def init_db():
             game_id INTEGER NOT NULL,
             book TEXT NOT NULL,
             pulled_at TIMESTAMP NOT NULL,
-            home_odds REAL NOT NULL,
-            away_odds REAL NOT NULL,
+            home_dec REAL NOT NULL,
+            away_dec REAL NOT NULL,
             FOREIGN KEY (game_id) REFERENCES games(id)
         )
     """)
@@ -169,11 +151,10 @@ def init_db():
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_elo_team ON elo_history(team_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_paper_bets_game ON paper_bets(game_id)")
 
-    conn.commit()
-    conn.close()
-    print("Database initialized successfully.")
-
+    # conn.commit() - managed by caller
+    # conn.close() - managed by caller
+    print("Database schema initialized.")
 
 if __name__ == "__main__":
-    init_db()
+    pass
 
