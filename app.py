@@ -3,6 +3,7 @@ import sqlite3
 import pandas as pd
 import uuid
 import datetime
+import time
 from database.db import get_connection
 from modeling.elo import EloModel
 from config import STARTING_ELO_2025_26
@@ -599,12 +600,12 @@ with tab4:
             "home_score": st.column_config.NumberColumn("Home Score", min_value=0, step=1),
             "away_score": st.column_config.NumberColumn("Away Score", min_value=0, step=1),
             "status": st.column_config.SelectboxColumn("Status", options=["SCHEDULED", "FINAL", "LIVE", "POSTPONED"]),
-            "home_open": st.column_config.NumberColumn("Home Open", format="%.2f", disabled=True),
-            "away_open": st.column_config.NumberColumn("Away Open", format="%.2f", disabled=True),
-            "home_close": st.column_config.NumberColumn("Home Close", format="%.2f", disabled=True),
-            "away_close": st.column_config.NumberColumn("Away Close", format="%.2f", disabled=True),
+            "home_open": st.column_config.NumberColumn("Home Open", format="%.2f", disabled=False),
+            "away_open": st.column_config.NumberColumn("Away Open", format="%.2f", disabled=False),
+            "home_close": st.column_config.NumberColumn("Home Close", format="%.2f", disabled=False),
+            "away_close": st.column_config.NumberColumn("Away Close", format="%.2f", disabled=False),
         },
-        disabled=["id", "start_time", "home", "away", "home_open", "away_open", "home_close", "away_close"],
+        disabled=["id", "start_time", "home", "away"],
         hide_index=True,
         use_container_width=True
     )
@@ -613,12 +614,15 @@ with tab4:
         conn = get_connection()
         c = conn.cursor()
         updated_count = 0
+        odds_updated_count = 0
         
-        # Iterate and update
-        # Optimziation: We can check against original df to only update changed, 
-        # but updating all visible 1000 is fast enough for local SQLite.
         try:
+            # We compare edited_df with strict original df (loaded before edit) could be tricky if sort changed.
+            # But here sort is fixed by ID/Time in load_data.
+            # We'll just Iterate and update efficiently.
+            
             for i, row in edited_df.iterrows():
+                # 1. Update Game Info (Score/Status)
                 # Handle NaNs
                 hs = row['home_score']
                 as_ = row['away_score']
@@ -632,10 +636,39 @@ with tab4:
                 """, (hs, as_, row['status'], row['id']))
                 updated_count += 1
                 
+                # 2. Update Odds
+                # Helper to update/insert odds
+                def update_odds_layer(gid, s_type, h_val, a_val):
+                    if pd.isna(h_val) or pd.isna(a_val): return 0
+                    
+                    # Attempt Update first (updates ALL snapshots of this type for consistency)
+                    c.execute("""
+                        UPDATE odds 
+                        SET home_odds = ?, away_odds = ?
+                        WHERE game_id = ? AND snapshot_type = ?
+                    """, (h_val, a_val, gid, s_type))
+                    
+                    if c.rowcount == 0:
+                        # Insert if not exists
+                        # Use 'Manual' as book to distinguish
+                        c.execute("""
+                            INSERT INTO odds (game_id, book, snapshot_type, home_odds, away_odds, snapshot_time)
+                            VALUES (?, 'Manual', ?, ?, ?, datetime('now'))
+                        """, (gid, s_type, h_val, a_val))
+                        return 1
+                    return 0
+
+                # Check and Update Open
+                update_odds_layer(row['id'], '10h', row['home_open'], row['away_open'])
+                
+                # Check and Update Close
+                update_odds_layer(row['id'], 'closing', row['home_close'], row['away_close'])
+                
             conn.commit()
-            st.success(f"Successfully saved {updated_count} records!")
-            # Optional: Rerun logic to refresh
-            # st.rerun() 
+            st.success(f"Saved {updated_count} game records and updated odds!")
+            time.sleep(1) # feedback delay
+            st.rerun() 
+            
         except Exception as e:
             st.error(f"Error saving changes: {e}")
         finally:
