@@ -53,11 +53,18 @@ def insert_game(date, home_id, away_id, home_odds=None, away_odds=None):
         
         game_id = cursor.lastrowid
         
-        # Insert Odds if provided
+        # Insert Odds if provided (both opening and closing)
         if home_odds and away_odds:
+            # Insert as opening odds (10h before)
             cursor.execute("""
-                INSERT INTO odds_snapshots (game_id, book, pulled_at, home_dec, away_dec)
-                VALUES (?, 'Manual', CURRENT_TIMESTAMP, ?, ?)
+                INSERT INTO odds (game_id, book, snapshot_type, snapshot_time, home_odds, away_odds)
+                VALUES (?, 'Manual', '10h', CURRENT_TIMESTAMP, ?, ?)
+            """, (game_id, home_odds, away_odds))
+            
+            # Also insert as closing odds (same values for manual entry)
+            cursor.execute("""
+                INSERT INTO odds (game_id, book, snapshot_type, snapshot_time, home_odds, away_odds)
+                VALUES (?, 'Manual', 'closing', CURRENT_TIMESTAMP, ?, ?)
             """, (game_id, home_odds, away_odds))
             
         conn.commit()
