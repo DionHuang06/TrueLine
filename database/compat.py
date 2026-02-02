@@ -17,32 +17,38 @@ class SQLiteCompatibleCursor:
         # Convert SQLite ? placeholders to Postgres %s
         pg_query = query.replace('?', '%s')
         
-        # Fix for AUTOINCREMENT / lastrowid
-        # SQLite sets cursor.lastrowid after INSERT. Postgres needs RETURNING id.
-        is_insert = pg_query.strip().upper().startswith("INSERT")
-        if is_insert and "RETURNING" not in pg_query.upper():
-             pg_query += " RETURNING id"
-        
         # Fix for "INSERT OR IGNORE" (SQLite) -> "INSERT ... ON CONFLICT DO NOTHING" (Postgres)
+        has_conflict = False
         if "INSERT OR IGNORE" in pg_query.upper():
             pg_query = pg_query.replace("INSERT OR IGNORE", "INSERT")
             pg_query += " ON CONFLICT DO NOTHING"
+            has_conflict = True
+        
+        # Fix for AUTOINCREMENT / lastrowid
+        # SQLite sets cursor.lastrowid after INSERT. Postgres needs RETURNING id.
+        # Only add RETURNING if it's an INSERT and doesn't already have it
+        is_insert = pg_query.strip().upper().startswith("INSERT")
+        needs_returning = is_insert and "RETURNING" not in pg_query.upper() and not has_conflict
+        
+        if needs_returning:
+             pg_query += " RETURNING id"
             
         try:
             self._cursor.execute(pg_query, params)
             self.rowcount = self._cursor.rowcount
             
-            if is_insert:
+            if needs_returning:
                  # Postgres returns the ID if we asked for it
                  try:
                      res = self._cursor.fetchone()
                      if res:
                          self.lastrowid = res[0]
                  except psycopg2.ProgrammingError:
-                     # No results returned (e.g. ON CONFLICT check failed)
+                     # No results returned
                      pass
         except Exception as e:
             print(f"Postgres Error in query: {pg_query}")
+            print(f"Params: {params}")
             raise e
             
     def fetchone(self):

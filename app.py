@@ -579,7 +579,7 @@ with tab4:
             JOIN teams h ON g.home_team_id = h.id
             JOIN teams a ON g.away_team_id = a.id
             LEFT JOIN odds o ON g.id = o.game_id
-            GROUP BY g.id
+            GROUP BY g.id, g.start_time, h.name, a.name, g.home_score, g.away_score, g.status
             ORDER BY g.start_time DESC
             LIMIT 1000
         """
