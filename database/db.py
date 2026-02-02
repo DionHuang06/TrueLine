@@ -3,8 +3,15 @@ import sqlite3
 from config import DB_PATH
 
 
-def get_connection() -> sqlite3.Connection:
+def get_connection():
     """Get a database connection with row factory."""
+    # Use Postgres if DB_URL is configured
+    from config import DB_URL
+    if DB_URL and "postgres" in DB_URL:
+        from database.compat import get_postgres_connection
+        return get_postgres_connection()
+    
+    # Fallback to SQLite
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")

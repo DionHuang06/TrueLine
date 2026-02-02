@@ -8,6 +8,11 @@ load_dotenv()
 # Paths
 BASE_DIR = Path(__file__).parent
 DB_PATH = BASE_DIR / "nba_betting.db"
+# Postgres Connection String (Pooler IPv4)
+# User: postgres.xrlouaxswwennoliqwcr
+# Pass: dyon%40%40512131 (encoded)
+# Host: aws-1-ca-central-1.pooler.supabase.com:6543
+DB_URL = "postgresql://postgres.xrlouaxswwennoliqwcr:dyon%40%40512131@aws-1-ca-central-1.pooler.supabase.com:6543/postgres?sslmode=require"
 
 # API Keys
 ODDS_API_KEY = os.getenv("ODDS_API_KEY", "")
