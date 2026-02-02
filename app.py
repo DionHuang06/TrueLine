@@ -693,14 +693,14 @@ with tab4:
             conn = get_connection()
             c = conn.cursor()
             
-            # Store old ratings before reset
+            # Store CURRENT ratings (before any changes)
             c.execute("SELECT id, name, current_elo FROM teams ORDER BY name")
-            old_ratings_data = c.fetchall()
-            old_ratings = {row[0]: {'name': row[1], 'elo': row[2]} for row in old_ratings_data}
+            current_ratings_data = c.fetchall()
+            current_ratings = {row[0]: {'name': row[1], 'elo': row[2]} for row in current_ratings_data}
             
-            status_text.text("Resetting ratings...")
+            status_text.text("Resetting ratings to season start...")
             
-            # 1. Reset all teams to starting Elo from config
+            # 1. Reset all teams to starting Elo from config (season start)
             # Use a single UPDATE with CASE to avoid deadlocks
             # Build CASE statement for all teams
             case_parts = []
@@ -769,12 +769,12 @@ with tab4:
             changes = []
             for row in new_ratings_data:
                 tid, name, new_elo = row
-                old_elo = old_ratings[tid]['elo']
+                old_elo = current_ratings[tid]['elo']
                 change = new_elo - old_elo
                 changes.append({
                     'Team': name,
-                    'Old Elo': f"{old_elo:.1f}",
-                    'New Elo': f"{new_elo:.1f}",
+                    'Before': f"{old_elo:.1f}",
+                    'After Recalc': f"{new_elo:.1f}",
                     'Change': f"{change:+.1f}"
                 })
             
