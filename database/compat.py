@@ -7,6 +7,11 @@ class SQLiteCompatibleCursor:
         self._cursor = cursor
         self.rowcount = -1
         self.lastrowid = None 
+    
+    @property
+    def description(self):
+        """Expose cursor description for pandas compatibility"""
+        return self._cursor.description
 
     def execute(self, query, params=None):
         # Convert SQLite ? placeholders to Postgres %s
