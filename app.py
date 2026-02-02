@@ -592,6 +592,8 @@ with tab4:
             LIMIT 1000
         """
         d = pd.read_sql(q, conn)
+        # Convert start_time to datetime for proper editing
+        d['start_time'] = pd.to_datetime(d['start_time'])
         conn.close()
         return d
 
