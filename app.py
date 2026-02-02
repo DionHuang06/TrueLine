@@ -339,10 +339,40 @@ with tab1:
                 model.load_ratings()
                 results = []
                 
+                # Save odds to database
+                conn = get_connection()
+                c = conn.cursor()
+                
                 for item in inputs:
                     mid = item['id']
                     hid = TEAMS_MAP.get(item['home'])
                     aid = TEAMS_MAP.get(item['away'])
+                    
+                    # Save odds for this game
+                    h_dec = item['h_odds']
+                    a_dec = item['a_odds']
+                    
+                    # Update or insert opening odds (10h)
+                    c.execute("""
+                        DELETE FROM odds 
+                        WHERE game_id = ? AND book = 'Manual' AND snapshot_type = '10h'
+                    """, (mid,))
+                    
+                    c.execute("""
+                        INSERT INTO odds (game_id, book, snapshot_type, snapshot_time, home_odds, away_odds)
+                        VALUES (?, 'Manual', '10h', CURRENT_TIMESTAMP, ?, ?)
+                    """, (mid, h_dec, a_dec))
+                    
+                    # Also save as closing odds (same values for manual entry)
+                    c.execute("""
+                        DELETE FROM odds 
+                        WHERE game_id = ? AND book = 'Manual' AND snapshot_type = 'closing'
+                    """, (mid,))
+                    
+                    c.execute("""
+                        INSERT INTO odds (game_id, book, snapshot_type, snapshot_time, home_odds, away_odds)
+                        VALUES (?, 'Manual', 'closing', CURRENT_TIMESTAMP, ?, ?)
+                    """, (mid, h_dec, a_dec))
                     
                     if hid and aid:
                         h_elo = model.get_team_rating(hid)
@@ -350,9 +380,6 @@ with tab1:
                         win_prob, _ = model.predict_game(h_elo, a_elo)
                         
                         # Calculate Implied Probabilities
-                        h_dec = item['h_odds']
-                        a_dec = item['a_odds']
-                        
                         impl_h = 1 / h_dec if h_dec > 0 else 0
                         impl_a = 1 / a_dec if a_dec > 0 else 0
                         
@@ -402,6 +429,9 @@ with tab1:
                             }
                         })
                 
+                conn.commit()
+                conn.close()
+                st.success(f"✅ Analyzed {len(results)} games and saved odds to database!")
                 st.session_state['daily_results'] = results
 
             if 'daily_results' in st.session_state:
