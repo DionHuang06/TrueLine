@@ -12,7 +12,7 @@ TEAMS = STARTING_ELO_2025_26
 # Page Config
 st.set_page_config(page_title="TrueLine", layout="wide")
 st.title("🏀 TrueLine")
-st.caption("v2.2.0 - Deadlock Fix + Cloud DB")
+st.caption("v2.2.1 - Statistical Analysis + Cloud DB")
 
 # --- DATABASE UTILS ---
 
@@ -693,14 +693,14 @@ with tab4:
             conn = get_connection()
             c = conn.cursor()
             
-            # Store CURRENT ratings (before any changes)
+            # Store old ratings before reset
             c.execute("SELECT id, name, current_elo FROM teams ORDER BY name")
-            current_ratings_data = c.fetchall()
-            current_ratings = {row[0]: {'name': row[1], 'elo': row[2]} for row in current_ratings_data}
+            old_ratings_data = c.fetchall()
+            old_ratings = {row[0]: {'name': row[1], 'elo': row[2]} for row in old_ratings_data}
             
-            status_text.text("Resetting ratings to season start...")
+            status_text.text("Resetting ratings...")
             
-            # 1. Reset all teams to starting Elo from config (season start)
+            # 1. Reset all teams to starting Elo from config
             # Use a single UPDATE with CASE to avoid deadlocks
             # Build CASE statement for all teams
             case_parts = []
@@ -769,12 +769,12 @@ with tab4:
             changes = []
             for row in new_ratings_data:
                 tid, name, new_elo = row
-                old_elo = current_ratings[tid]['elo']
+                old_elo = old_ratings[tid]['elo']
                 change = new_elo - old_elo
                 changes.append({
                     'Team': name,
-                    'Before': f"{old_elo:.1f}",
-                    'After Recalc': f"{new_elo:.1f}",
+                    'Old Elo': f"{old_elo:.1f}",
+                    'New Elo': f"{new_elo:.1f}",
                     'Change': f"{change:+.1f}"
                 })
             
