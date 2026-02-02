@@ -753,8 +753,6 @@ with tab4:
                     # Delete associated data first (foreign key constraints)
                     c.execute("DELETE FROM odds WHERE game_id = ?", (selected_game_id,))
                     c.execute("DELETE FROM paper_bets WHERE game_id = ?", (selected_game_id,))
-                    c.execute("DELETE FROM elo_history WHERE game_id = ?", (selected_game_id,))
-                    c.execute("DELETE FROM predictions WHERE game_id = ?", (selected_game_id,))
                     
                     # Delete the game itself
                     c.execute("DELETE FROM games WHERE id = ?", (selected_game_id,))
