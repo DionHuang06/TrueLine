@@ -738,7 +738,7 @@ with tab4:
                 format_func=lambda x: game_options[x],
                 key="delete_game_selector"
             )
-            selected_game_id = df.iloc[selected_game]['id']
+            selected_game_id = int(df.iloc[selected_game]['id'])  # Convert numpy.int64 to int
         else:
             st.info("No games to delete")
             selected_game_id = None
