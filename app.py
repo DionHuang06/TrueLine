@@ -608,7 +608,7 @@ with tab4:
         },
         disabled=["id", "start_time", "home", "away"],
         hide_index=True,
-        use_container_width=True
+        width="stretch"
     )
     
     if st.button("Save Changes", type="primary"):
@@ -779,7 +779,7 @@ with tab4:
                 })
             
             df_changes = pd.DataFrame(changes)
-            st.dataframe(df_changes, use_container_width=True, hide_index=True)
+            st.dataframe(df_changes, width="stretch", hide_index=True)
             
             # Reset lock
             st.session_state.resetting_elo = False
