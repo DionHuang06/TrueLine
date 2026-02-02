@@ -602,7 +602,7 @@ with tab4:
         df,
         column_config={
             "id": st.column_config.NumberColumn(disabled=True),
-            "start_time": st.column_config.DatetimeColumn(disabled=True, format="D MMM YYYY, HH:mm"),
+            "start_time": st.column_config.DatetimeColumn(disabled=False, format="D MMM YYYY, HH:mm"),
             "home": st.column_config.TextColumn(disabled=True),
             "away": st.column_config.TextColumn(disabled=True),
             "home_score": st.column_config.NumberColumn("Home Score", min_value=0, step=1),
@@ -613,7 +613,7 @@ with tab4:
             "home_close": st.column_config.NumberColumn("Home Close", format="%.2f", disabled=False),
             "away_close": st.column_config.NumberColumn("Away Close", format="%.2f", disabled=False),
         },
-        disabled=["id", "start_time", "home", "away"],
+        disabled=["id", "home", "away"],
         hide_index=True,
         width="stretch"
     )
@@ -630,18 +630,23 @@ with tab4:
             # We'll just Iterate and update efficiently.
             
             for i, row in edited_df.iterrows():
-                # 1. Update Game Info (Score/Status)
+                # 1. Update Game Info (Date/Score/Status)
                 # Handle NaNs
                 hs = row['home_score']
                 as_ = row['away_score']
                 if pd.isna(hs): hs = None
                 if pd.isna(as_): as_ = None
                 
+                # Convert start_time to string if it's a Timestamp
+                start_time = row['start_time']
+                if hasattr(start_time, 'isoformat'):
+                    start_time = start_time.isoformat()
+                
                 c.execute("""
                     UPDATE games 
-                    SET home_score = ?, away_score = ?, status = ?
+                    SET start_time = ?, home_score = ?, away_score = ?, status = ?
                     WHERE id = ?
-                """, (hs, as_, row['status'], row['id']))
+                """, (start_time, hs, as_, row['status'], row['id']))
                 updated_count += 1
                 
                 # 2. Update Odds
