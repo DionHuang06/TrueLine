@@ -8,8 +8,8 @@ def get_connection():
     # Use Postgres if DB_URL is configured
     from config import DB_URL
     if DB_URL and "postgres" in DB_URL:
-        from database.compat import get_postgres_connection
-        return get_postgres_connection()
+        from database.compat import get_postgres_connection_with_retry
+        return get_postgres_connection_with_retry()
     
     # Fallback to SQLite
     conn = sqlite3.connect(DB_PATH)

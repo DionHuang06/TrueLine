@@ -12,7 +12,7 @@ DB_PATH = BASE_DIR / "nba_betting.db"
 # User: postgres.xrlouaxswwennoliqwcr
 # Pass: dyon%40%40512131 (encoded)
 # Host: aws-1-ca-central-1.pooler.supabase.com:6543
-DB_URL = "postgresql://postgres.xrlouaxswwennoliqwcr:dyon%40%40512131@aws-1-ca-central-1.pooler.supabase.com:6543/postgres?sslmode=require"
+DB_URL = "postgresql://postgres.xrlouaxswwennoliqwcr:dyon%40%40512131@aws-1-ca-central-1.pooler.supabase.com:6543/postgres?sslmode=require&connect_timeout=10&keepalives=1&keepalives_idle=30"
 
 # API Keys
 ODDS_API_KEY = os.getenv("ODDS_API_KEY", "")

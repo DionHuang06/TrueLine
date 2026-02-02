@@ -90,3 +90,18 @@ def get_postgres_connection():
     except Exception as e:
         print(f"Failed to connect to Postgres: {e}")
         raise e
+
+def get_postgres_connection_with_retry(max_retries=3):
+    """Get Postgres connection with retry logic"""
+    import time
+    for attempt in range(max_retries):
+        try:
+            return get_postgres_connection()
+        except Exception as e:
+            if attempt < max_retries - 1:
+                wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
+                print(f"Connection attempt {attempt + 1} failed, retrying in {wait_time}s...")
+                time.sleep(wait_time)
+            else:
+                print(f"All {max_retries} connection attempts failed")
+                raise e
