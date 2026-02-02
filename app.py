@@ -720,6 +720,58 @@ with tab4:
             conn.close()
             
     st.divider()
+    st.markdown("### Delete Game")
+    st.warning("⚠️ This will permanently delete the game and all associated data (odds, bets, etc.)")
+    
+    # Game selector for deletion
+    delete_col1, delete_col2 = st.columns([3, 1])
+    
+    with delete_col1:
+        # Create a list of games for selection
+        game_options = [f"{row['home']} vs {row['away']} ({row['start_time']}) - ID: {row['id']}" 
+                       for _, row in df.iterrows()]
+        
+        if game_options:
+            selected_game = st.selectbox(
+                "Select game to delete",
+                options=range(len(game_options)),
+                format_func=lambda x: game_options[x],
+                key="delete_game_selector"
+            )
+            selected_game_id = df.iloc[selected_game]['id']
+        else:
+            st.info("No games to delete")
+            selected_game_id = None
+    
+    with delete_col2:
+        if selected_game_id:
+            if st.button("🗑️ Delete Game", type="secondary"):
+                try:
+                    conn = get_connection()
+                    c = conn.cursor()
+                    
+                    # Delete associated data first (foreign key constraints)
+                    c.execute("DELETE FROM odds WHERE game_id = ?", (selected_game_id,))
+                    c.execute("DELETE FROM paper_bets WHERE game_id = ?", (selected_game_id,))
+                    c.execute("DELETE FROM elo_history WHERE game_id = ?", (selected_game_id,))
+                    c.execute("DELETE FROM predictions WHERE game_id = ?", (selected_game_id,))
+                    
+                    # Delete the game itself
+                    c.execute("DELETE FROM games WHERE id = ?", (selected_game_id,))
+                    
+                    conn.commit()
+                    conn.close()
+                    
+                    st.success(f"✅ Game ID {selected_game_id} deleted successfully!")
+                    time.sleep(1)
+                    st.rerun()
+                    
+                except Exception as e:
+                    st.error(f"Error deleting game: {e}")
+                    if conn:
+                        conn.close()
+    
+    st.divider()
     st.markdown("### Admin Actions")
     st.info("If you update game results, you must recalculate Elo ratings to reflect the changes.")
     
