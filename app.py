@@ -683,20 +683,30 @@ with tab4:
         status_text = st.empty()
         
         try:
-            status_text.text("Resetting ratings...")
+            status_text.text("Fetching current ratings...")
             conn = get_connection()
             c = conn.cursor()
             
-            # 1. Reset all teams to 1500 (or baseline logic if needed)
-            c.execute("UPDATE teams SET current_elo = 1500")
+            # Store old ratings before reset
+            c.execute("SELECT id, name, current_elo FROM teams ORDER BY name")
+            old_ratings_data = c.fetchall()
+            old_ratings = {row[0]: {'name': row[1], 'elo': row[2]} for row in old_ratings_data}
+            
+            status_text.text("Resetting ratings...")
+            
+            # 1. Reset all teams to starting Elo from config
+            for team_name, starting_elo in TEAMS.items():
+                c.execute("UPDATE teams SET current_elo = ? WHERE name = ?", (starting_elo, team_name))
             
             # 2. Fetch all FINAL games sorted by time
             c.execute("SELECT id, home_team_id, away_team_id, home_score, away_score FROM games WHERE status='FINAL' ORDER BY start_time ASC")
             games = c.fetchall()
             
             model = EloModel() 
-            # Force empty ratings (all 1500 as per DB reset, or just init new dict)
-            model.ratings = {row[0]: 1500.0 for row in c.execute("SELECT id FROM teams").fetchall()}
+            # Initialize with starting Elo from config
+            c.execute("SELECT id, name FROM teams")
+            teams_list = c.fetchall()
+            model.ratings = {row[0]: TEAMS.get(row[1], 1500.0) for row in teams_list}
             
             total = len(games)
             status_text.text(f"Replaying {total} games...")
@@ -721,10 +731,37 @@ with tab4:
                 c.execute("UPDATE teams SET current_elo = ? WHERE id = ?", (rating, tid))
                 
             conn.commit()
+            
+            # 4. Fetch new ratings and display changes
+            c.execute("SELECT id, name, current_elo FROM teams ORDER BY name")
+            new_ratings_data = c.fetchall()
+            
             conn.close()
-            progress_bar.progress(100)
+            
+            progress_bar.progress(1.0)
             status_text.text("Done!")
             st.success(f"Successfully recalculated ratings for {total} games!")
             
+            # Display Elo changes
+            st.subheader("📊 Elo Rating Changes")
+            
+            changes = []
+            for row in new_ratings_data:
+                tid, name, new_elo = row
+                old_elo = old_ratings[tid]['elo']
+                change = new_elo - old_elo
+                changes.append({
+                    'Team': name,
+                    'Old Elo': f"{old_elo:.1f}",
+                    'New Elo': f"{new_elo:.1f}",
+                    'Change': f"{change:+.1f}"
+                })
+            
+            df_changes = pd.DataFrame(changes)
+            st.dataframe(df_changes, use_container_width=True, hide_index=True)
+            
         except Exception as e:
             st.error(f"Error: {e}")
+            import traceback
+            st.code(traceback.format_exc())
+
