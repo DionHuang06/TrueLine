@@ -679,7 +679,12 @@ with tab4:
     st.markdown("### Admin Actions")
     st.info("If you update game results, you must recalculate Elo ratings to reflect the changes.")
     
-    if st.button("🔄 Recalculate All Elo Ratings"):
+    # Prevent concurrent resets
+    if 'resetting_elo' not in st.session_state:
+        st.session_state.resetting_elo = False
+    
+    if st.button("🔄 Recalculate All Elo Ratings", disabled=st.session_state.resetting_elo):
+        st.session_state.resetting_elo = True
         progress_bar = st.progress(0)
         status_text = st.empty()
         
@@ -696,8 +701,23 @@ with tab4:
             status_text.text("Resetting ratings...")
             
             # 1. Reset all teams to starting Elo from config
+            # Use a single UPDATE with CASE to avoid deadlocks
+            # Build CASE statement for all teams
+            case_parts = []
+            team_names = []
             for team_name, starting_elo in TEAMS.items():
-                c.execute("UPDATE teams SET current_elo = ? WHERE name = ?", (starting_elo, team_name))
+                case_parts.append(f"WHEN name = %s THEN %s")
+                team_names.extend([team_name, starting_elo])
+            
+            if case_parts:
+                update_query = f"""
+                    UPDATE teams 
+                    SET current_elo = CASE 
+                        {' '.join(case_parts)}
+                        ELSE current_elo 
+                    END
+                """
+                c.execute(update_query, tuple(team_names))
             
             # 2. Fetch all FINAL games sorted by time
             c.execute("SELECT id, home_team_id, away_team_id, home_score, away_score FROM games WHERE status='FINAL' ORDER BY start_time ASC")
@@ -761,8 +781,13 @@ with tab4:
             df_changes = pd.DataFrame(changes)
             st.dataframe(df_changes, use_container_width=True, hide_index=True)
             
+            # Reset lock
+            st.session_state.resetting_elo = False
+            
         except Exception as e:
             st.error(f"Error: {e}")
             import traceback
             st.code(traceback.format_exc())
+            # Reset lock on error
+            st.session_state.resetting_elo = False
 
