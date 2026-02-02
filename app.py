@@ -12,7 +12,7 @@ TEAMS = STARTING_ELO_2025_26
 # Page Config
 st.set_page_config(page_title="TrueLine", layout="wide")
 st.title("🏀 TrueLine")
-st.caption("v2.1.0 - Cloud DB Edition")
+st.caption("v2.2.0 - Deadlock Fix + Cloud DB")
 
 # --- DATABASE UTILS ---
 
