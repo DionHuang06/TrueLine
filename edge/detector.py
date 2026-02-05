@@ -191,6 +191,7 @@ class EdgeDetector:
                 FROM games
                 WHERE (home_team_id = ? OR away_team_id = ?)
                   AND home_score IS NOT NULL AND away_score IS NOT NULL
+                  AND (home_score > 0 OR away_score > 0)
                   AND start_time < ?
             """
             cursor.execute(query, (team_id, team_id, before_time))
@@ -200,6 +201,7 @@ class EdgeDetector:
                 FROM games
                 WHERE (home_team_id = ? OR away_team_id = ?)
                   AND home_score IS NOT NULL AND away_score IS NOT NULL
+                  AND (home_score > 0 OR away_score > 0)
             """
             cursor.execute(query, (team_id, team_id))
         
@@ -320,7 +322,7 @@ class EdgeDetector:
         cursor.execute("""
             SELECT id FROM games 
             WHERE date(start_time) = date(?)
-            AND (home_score IS NULL OR away_score IS NULL)
+            AND (home_score IS NULL OR away_score IS NULL OR (home_score = 0 AND away_score = 0))
             ORDER BY start_time
         """, (today,))
         

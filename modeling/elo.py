@@ -54,6 +54,7 @@ class EloModel:
             FROM games
             WHERE (home_team_id = ? OR away_team_id = ?)
               AND home_score IS NOT NULL AND away_score IS NOT NULL
+              AND (home_score > 0 OR away_score > 0)
               AND start_time < ?
         """, (team_id, team_id, game_time))
         
@@ -267,6 +268,7 @@ class EloModel:
                    g.home_score, g.away_score, g.start_time
             FROM games g
             WHERE g.home_score IS NOT NULL AND g.away_score IS NOT NULL
+              AND (g.home_score > 0 OR g.away_score > 0)
         """
         if from_date:
             query += f" AND date(g.start_time) >= date('{from_date}')"

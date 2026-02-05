@@ -107,7 +107,9 @@ def resolve_bets():
         SELECT b.id, b.side, g.home_score, g.away_score
         FROM paper_bets b
         JOIN games g ON b.game_id = g.id
-        WHERE b.result = 'PENDING' AND g.home_score IS NOT NULL AND g.away_score IS NOT NULL
+        WHERE b.result = 'PENDING' 
+          AND g.home_score IS NOT NULL AND g.away_score IS NOT NULL 
+          AND (g.home_score > 0 OR g.away_score > 0)
     """
     c.execute(query)
     rows = c.fetchall()
@@ -813,8 +815,14 @@ with tab4:
                 """
                 c.execute(update_query, tuple(team_names))
             
-            # 2. Fetch all games with scores sorted by time
-            c.execute("SELECT id, home_team_id, away_team_id, home_score, away_score FROM games WHERE home_score IS NOT NULL AND away_score IS NOT NULL ORDER BY start_time ASC")
+            # 2. Fetch all games with scores sorted by time (excluding 0-0)
+            c.execute("""
+                SELECT id, home_team_id, away_team_id, home_score, away_score 
+                FROM games 
+                WHERE home_score IS NOT NULL AND away_score IS NOT NULL 
+                AND (home_score > 0 OR away_score > 0)
+                ORDER BY start_time ASC
+            """)
             games = c.fetchall()
             
             model = EloModel() 
