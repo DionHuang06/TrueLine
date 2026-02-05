@@ -107,7 +107,7 @@ def resolve_bets():
         SELECT b.id, b.side, g.home_score, g.away_score
         FROM paper_bets b
         JOIN games g ON b.game_id = g.id
-        WHERE b.result = 'PENDING' AND g.status = 'FINAL'
+        WHERE b.result = 'PENDING' AND g.home_score IS NOT NULL AND g.away_score IS NOT NULL
     """
     c.execute(query)
     rows = c.fetchall()
@@ -608,7 +608,7 @@ with tab4:
         # Join with new 'odds' table for Open/Close
         q = """
             SELECT g.id, g.start_time, h.name as home, a.name as away, 
-                   g.home_score, g.away_score, g.status,
+                   g.home_score, g.away_score,
                    AVG(CASE WHEN o.snapshot_type = '10h' THEN o.home_odds END) as home_open,
                    AVG(CASE WHEN o.snapshot_type = '10h' THEN o.away_odds END) as away_open,
                    AVG(CASE WHEN o.snapshot_type = 'closing' THEN o.home_odds END) as home_close,
@@ -617,7 +617,7 @@ with tab4:
             JOIN teams h ON g.home_team_id = h.id
             JOIN teams a ON g.away_team_id = a.id
             LEFT JOIN odds o ON g.id = o.game_id
-            GROUP BY g.id, g.start_time, h.name, a.name, g.home_score, g.away_score, g.status
+            GROUP BY g.id, g.start_time, h.name, a.name, g.home_score, g.away_score
             ORDER BY g.start_time DESC
             LIMIT 1000
         """
@@ -639,7 +639,7 @@ with tab4:
             "away": st.column_config.TextColumn(disabled=True),
             "home_score": st.column_config.NumberColumn("Home Score", min_value=0, step=1),
             "away_score": st.column_config.NumberColumn("Away Score", min_value=0, step=1),
-            "status": st.column_config.SelectboxColumn("Status", options=["SCHEDULED", "FINAL", "LIVE", "POSTPONED"]),
+
             "home_open": st.column_config.NumberColumn("Home Open", format="%.2f", disabled=False),
             "away_open": st.column_config.NumberColumn("Away Open", format="%.2f", disabled=False),
             "home_close": st.column_config.NumberColumn("Home Close", format="%.2f", disabled=False),
@@ -676,9 +676,9 @@ with tab4:
                 
                 c.execute("""
                     UPDATE games 
-                    SET start_time = ?, home_score = ?, away_score = ?, status = ?
+                    SET start_time = ?, home_score = ?, away_score = ?
                     WHERE id = ?
-                """, (start_time, hs, as_, row['status'], row['id']))
+                """, (start_time, hs, as_, row['id']))
                 updated_count += 1
                 
                 # 2. Update Odds
@@ -813,8 +813,8 @@ with tab4:
                 """
                 c.execute(update_query, tuple(team_names))
             
-            # 2. Fetch all FINAL games sorted by time
-            c.execute("SELECT id, home_team_id, away_team_id, home_score, away_score FROM games WHERE status='FINAL' ORDER BY start_time ASC")
+            # 2. Fetch all games with scores sorted by time
+            c.execute("SELECT id, home_team_id, away_team_id, home_score, away_score FROM games WHERE home_score IS NOT NULL AND away_score IS NOT NULL ORDER BY start_time ASC")
             games = c.fetchall()
             
             model = EloModel() 

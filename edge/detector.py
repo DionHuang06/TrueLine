@@ -190,7 +190,7 @@ class EdgeDetector:
                 SELECT COUNT(*) as count
                 FROM games
                 WHERE (home_team_id = ? OR away_team_id = ?)
-                  AND status = 'FINAL'
+                  AND home_score IS NOT NULL AND away_score IS NOT NULL
                   AND start_time < ?
             """
             cursor.execute(query, (team_id, team_id, before_time))
@@ -199,7 +199,7 @@ class EdgeDetector:
                 SELECT COUNT(*) as count
                 FROM games
                 WHERE (home_team_id = ? OR away_team_id = ?)
-                  AND status = 'FINAL'
+                  AND home_score IS NOT NULL AND away_score IS NOT NULL
             """
             cursor.execute(query, (team_id, team_id))
         
@@ -320,7 +320,7 @@ class EdgeDetector:
         cursor.execute("""
             SELECT id FROM games 
             WHERE date(start_time) = date(?)
-            AND status = 'SCHEDULED'
+            AND (home_score IS NULL OR away_score IS NULL)
             ORDER BY start_time
         """, (today,))
         
